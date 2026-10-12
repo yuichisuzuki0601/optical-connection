@@ -15,6 +15,10 @@ def handle_tact_switch_push():
 def handle_start_marker():
     oled.clear().write_middle('RECEIVING...').emit()
 
+def handle_receive_failure(reason):
+    print(f'OpticalReceiver: {reason}.')
+    oled.clear().write_middle('INVALID').emit()
+
 def handle_received_message(message):
     characters_per_line = Oled.WIDTH // Oled.FONT_WIDTH
     maximum_lines = Oled.HEIGHT // Oled.FONT_HEIGHT
@@ -32,6 +36,7 @@ def handle_received_message(message):
 tact_switch.on_push(handle_tact_switch_push)
 receiver = (OpticalReceiver(photo_transistor)
     .on_start_marker(handle_start_marker)
+    .on_failure(handle_receive_failure)
     .on_message(handle_received_message))
 
 print('optical-connection-receiver start.')

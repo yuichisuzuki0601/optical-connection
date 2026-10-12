@@ -8,7 +8,7 @@ from util.runner import Runner
 class OpticalReceiver:
     """PhotoTransistorの明暗の継続時間から実験用フレームを復元する。"""
 
-    HALF_BIT_MS = 100
+    HALF_BIT_MS = 70
     # 現在の実機ログでは100ms送信時に明が約130〜150ms、暗が約60〜90ms。
     # 明暗の切り替わりに生じる偏りを補正してから区間数へ丸める。
     LIGHT_DURATION_BIAS_MS = 40
@@ -204,14 +204,14 @@ class OpticalReceiver:
                 f'OpticalReceiver: CRC mismatch '
                 f'(expected {expected_checksum}, received {checksum}).'
             )
-            self._fail('invalid UTF-8 payload')
+            self._fail('CRC mismatch')
             return
 
         try:
             message = bytes(payload).decode('utf-8')
         except UnicodeError:
             print('OpticalReceiver: invalid UTF-8 payload.')
-            self._reset()
+            self._fail('invalid UTF-8 payload')
             return
 
         print(f"OpticalReceiver: received '{message}'.")

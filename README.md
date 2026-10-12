@@ -1,50 +1,111 @@
-# 光通信実験
+# Optical Connection
 
-スマートフォンの画面の明暗を使って文字列を送る実験用プロジェクトです。`sender` が画面を明滅させ、`device` が受光素子で明暗を検出します。
+Optical Connection sends a short text message from a phone screen to a Seeed Studio XIAO ESP32C3. The sender displays a timed black-and-white pattern; a phototransistor on the device detects it, and a 128 x 64 OLED displays the decoded message. The device runs MicroPython, while the sender is a small web app served by Node.js.
 
-## 構成
+## What you need
 
-- `device/`: MicroPythonで動くESP32側のコードとファームウェア
-- `sender/`: Node.jsの標準モジュールだけで動く送信ページ
-- `justfile`: 送信ページとデバイスの操作コマンド
+- A Seeed Studio XIAO ESP32C3 running MicroPython
+- A phototransistor, a 128 x 64 SSD1306 I2C OLED, and a push button
+- A phone and a computer on the same local network
+- Node.js and npm on the computer
+- `just` and `mpremote` for the commands below; `esptool` is needed only to flash firmware
 
-## Senderを起動する
+The provided `just sender-start` recipe uses macOS commands (`ifconfig en0` and `open`). The sender itself runs anywhere Node.js is available.
 
-プロジェクトのルートで実行します。
+## Hardware connections
 
-```sh
-just sender-start
-```
+The current device code uses these **GPIO numbers**, not the XIAO's `D` numbers:
 
-`just sender-start` はMacの `en0` に割り当てられたLAN内IPv4アドレスのページを先に開き、その後 `npm run start` でサーバーを起動します。ブラウザに接続エラーが出た場合は、サーバー起動後に再読み込みしてください。
+| Component | XIAO ESP32C3 pin | GPIO | Behavior |
+| --- | --- | ---: | --- |
+| Phototransistor signal | D8 | 8 | Active low; the input uses the internal pull-up |
+| Push button | D7 | 20 | Connects the input to GND when pressed |
+| OLED SCL | D6 | 21 | I2C clock |
+| OLED SDA | D5 | 7 | I2C data |
 
-`just` を使わない場合は、ルートから次のように起動できます。
+Connect the OLED and sensor power according to their own module specifications. The firmware configures the OLED as I2C bus 0 and expects a 128 x 64 SSD1306 display. For battery operation, the XIAO ESP32C3 has separate battery pads on its back; consult the [Seeed Studio battery wiring guide](https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/#battery-usage) before connecting a cell.
+
+## Quick start
+
+Run these commands from the repository root unless a step says otherwise.
+
+1. Connect the XIAO ESP32C3 by USB. If it does not already have MicroPython, flash the bundled firmware:
+
+   ```sh
+   just firmware-flash-esp32c3
+   ```
+
+   Flashing replaces the firmware currently on the board. The recipe selects the first matching `/dev/cu.usb*` port.
+
+2. Install the OLED library once for a fresh checkout and board:
+
+   ```sh
+   just device-install-lib
+   ```
+
+   This installs `ssd1306` through `mpremote` and copies it into `device/src/lib/` so subsequent uploads include it. That local directory is ignored by Git.
+
+3. Upload the device code and start the receiver:
+
+   ```sh
+   just device-start
+   ```
+
+   The command copies `device/src/` to the board, runs `main.py`, and saves serial output to `device/.log`. Leave it running while testing. Once uploaded, `main.py` also starts when the board boots on its own.
+
+4. In another terminal, start the sender:
+
+   ```sh
+   just sender-start
+   ```
+
+   On macOS, this opens `http://<en0 IPv4 address>:3000` and then starts the server. If the browser opens before the server is ready, reload the page. Open the same URL on a phone connected to the same local network.
+
+If you are not using `just`, start the sender with:
 
 ```sh
 cd sender
 npm run start
 ```
 
-既定のポートは3000です。PCでは `http://localhost:3000` を開きます。同じLAN上のスマートフォンでは `http://<PCのIPアドレス>:3000` を開きます。`just` を使わずにポートを変更する場合は、`sender` ディレクトリで `PORT=8080 npm run start` を実行します。
+Then open `http://localhost:3000` on the computer or `http://<computer LAN IPv4 address>:3000` on the phone. The server uses port 3000 by default; set `PORT` to change it when starting through npm directly. The sender has no third-party npm dependencies.
 
-送信ボタンを押すと入力欄からフォーカスを外し、0.5秒待ってから3秒のカウントダウンを始めます。その後、画面を2秒間黒に固定してから送信します。この間は画面と受光素子の位置を動かさないでください。
+## Send a message
 
-「Connection Check」は受光素子の反応を見るためのテストです。同じ準備時間の後、白500ms・黒500msを10回繰り返します。接続の成立や受信成功を判定する機能ではありません。
+1. Place the phone's circular display area against the phototransistor. Keep the phone awake and its position steady.
+2. Enter a message and tap **Send**. The sender waits 0.5 seconds, shows a three-second countdown, and holds the display dark for two seconds before transmission.
+3. During transmission, the phone shows `SENDING...` with an estimated time remaining. The OLED changes from `HELLO` to `RECEIVING...` after it recognizes the start marker, then displays the decoded text when the complete frame passes validation.
 
-## Deviceを起動する
+The OLED shows up to eight lines of 16 characters. Pressing the device button replaces the current display with `CLEAR`.
 
-対応するMicroPythonファームウェアを書き込んだESP32を接続し、`mpremote` を使える状態で、プロジェクトのルートから実行します。
+**Connection Check** alternates white and black every 500 ms for ten cycles after the same preparation sequence. It is useful for checking whether the phototransistor responds; it does not confirm that a message was decoded. Likewise, `Done` on the phone means the display sequence finished, not that the device acknowledged receipt.
 
-```sh
-just device-start
+## How the transfer works
+
+The sender converts the input to UTF-8 bytes and constructs this frame:
+
+```text
+start marker | payload length (2 bytes) | payload | CRC-16 (2 bytes) | end marker
 ```
 
-このコマンドは `device/src/` をデバイスへコピーし、`main.py` を実行して出力を `device/.log` に保存します。現在の `main.py` はOLEDに `HELLO` を表示し、タクトスイッチで表示を消し、受光素子の明暗変化をログに出します。文字列の復元処理は `device/src/protocol/optical_receiver.py` にありますが、`main.py` にはまだ接続していません。現在のログには明暗の継続時間 `duration` も出ません。
+The start marker is six alternating light/dark slots; the end marker is six alternating dark/light slots. The length, payload, and CRC bytes are Manchester encoded (`0` = light/dark, `1` = dark/light). Each light or dark slot currently lasts 70 ms, approximately 1.43 times faster than the original 100 ms setting. The CRC uses polynomial `0x1021` and an initial value of `0xffff`.
 
-ファームウェアの書き込みや開発用stubの導入など、その他のコマンドは `just --list` で確認できます。
+The receiver samples the phototransistor, reconstructs the slots from observed light and dark durations, validates the markers and CRC, and decodes the payload as UTF-8. Its timing correction is tuned from measurements on the current hardware. If you change the slot duration in `sender/app.js` (`HALF_BIT_MS`), update `OpticalReceiver.HALF_BIT_MS` in `device/src/protocol/optical_receiver.py` as well.
 
-## 送信方式
+## Troubleshooting
 
-入力文字列をUTF-8のバイト列へ変換し、交互明滅の開始マーカー、本文長、本文、CRC-16、交互明滅の終了マーカーの順にフレーム化します。本文長、本文、CRC-16のビットはManchester方式で明暗に変換します。
+- **The phone page does not load:** Make sure the server is running, the phone and computer are on the same LAN, and you are using the computer's LAN IPv4 address. The `just` recipe assumes the Mac's network interface is `en0`.
+- **The sensor does not change state:** Check its power, polarity, connection to GPIO8, and alignment with the phone. The input is active low: `light` means the GPIO reads `0`.
+- **The OLED stays on `HELLO` or `RECEIVING...`:** Inspect `device/.log` for phototransistor transitions, start-marker detection, frame errors, and decoded messages. Keep the phone aligned and avoid changing brightness during a transfer.
+- **The board is not found:** Check the USB cable and serial port. The `just` recipes use `mpremote`'s automatic device selection; run `mpremote connect <port> ls` to test a specific port.
 
-`sender/app.js` の `HALF_BIT_MS` は明滅の半ビット時間で、現在は100msです。受信処理を使う場合は、`device/src/protocol/optical_receiver.py` の `OpticalReceiver.HALF_BIT_MS` も同じ値に合わせます。
+## Repository layout
+
+| Path | Purpose |
+| --- | --- |
+| `sender/` | Web interface and Node.js HTTP server |
+| `device/src/main.py` | OLED state and receiver callbacks |
+| `device/src/protocol/optical_receiver.py` | Sampling, frame decoding, and validation |
+| `device/src/component/` | Hardware components |
+| `device/firmware/` | MicroPython firmware files and source links |
+| `justfile` | Development and device commands (`just --list`) |

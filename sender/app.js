@@ -1,5 +1,5 @@
-// まずは受信タイミングに余裕を持たせる。実験が安定したら短くする。
-const HALF_BIT_MS = 100;
+// 約1.43倍速。受信側の HALF_BIT_MS と揃える。
+const HALF_BIT_MS = 70;
 const COUNTDOWN_SECONDS = 3;
 const UI_SETTLE_MS = 500;
 const TRANSMISSION_GUARD_MS = 2000;
