@@ -88,7 +88,7 @@ The sender converts the input to UTF-8 bytes and constructs this frame:
 start marker | payload length (2 bytes) | payload | CRC-16 (2 bytes) | end marker
 ```
 
-The start marker is six alternating light/dark slots; the end marker is six alternating dark/light slots. The length, payload, and CRC bytes are Manchester encoded (`0` = light/dark, `1` = dark/light). Each light or dark slot currently lasts 70 ms, approximately 1.43 times faster than the original 100 ms setting. The CRC uses polynomial `0x1021` and an initial value of `0xffff`.
+The start marker is six alternating light/dark slots; the end marker is six alternating dark/light slots. The length, payload, and CRC bytes are Manchester encoded (`0` = light/dark, `1` = dark/light). Each light or dark slot lasts 100 ms, the setting that worked reliably in battery-powered tests. The CRC uses polynomial `0x1021` and an initial value of `0xffff`.
 
 The receiver samples the phototransistor, reconstructs the slots from observed light and dark durations, validates the markers and CRC, and decodes the payload as UTF-8. Its timing correction is tuned from measurements on the current hardware. If you change the slot duration in `sender/app.js` (`HALF_BIT_MS`), update `OpticalReceiver.HALF_BIT_MS` in `device/src/protocol/optical_receiver.py` as well.
 

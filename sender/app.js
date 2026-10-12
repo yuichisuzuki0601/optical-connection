@@ -1,5 +1,5 @@
-// 約1.43倍速。受信側の HALF_BIT_MS と揃える。
-const HALF_BIT_MS = 70;
+// バッテリー駆動でも安定した設定。受信側の HALF_BIT_MS と揃える。
+const HALF_BIT_MS = 100;
 const COUNTDOWN_SECONDS = 3;
 const UI_SETTLE_MS = 500;
 const TRANSMISSION_GUARD_MS = 2000;

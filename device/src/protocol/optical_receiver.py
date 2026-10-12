@@ -8,7 +8,7 @@ from util.runner import Runner
 class OpticalReceiver:
     """PhotoTransistorの明暗の継続時間から実験用フレームを復元する。"""
 
-    HALF_BIT_MS = 70
+    HALF_BIT_MS = 100
     # 現在の実機ログでは100ms送信時に明が約130〜150ms、暗が約60〜90ms。
     # 明暗の切り替わりに生じる偏りを補正してから区間数へ丸める。
     LIGHT_DURATION_BIAS_MS = 40
