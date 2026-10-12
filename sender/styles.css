@@ -1,0 +1,104 @@
+:root {
+  color: #f5f5f5;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
+
+.app {
+  --content-gap: clamp(56px, calc(50svh - 310px), 96px);
+  width: min(100% - 32px, 460px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 28px 0 40px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.status {
+  min-height: 2.2em;
+  margin: auto 0 0;
+  padding-top: 20px;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 18px;
+  background: #1a1a1a;
+  text-align: left;
+}
+
+.input-label { display: block; margin-bottom: 8px; font-weight: 700; }
+
+.input-wrap { display: flex; align-items: center; gap: 8px; }
+
+input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #555;
+  border-radius: 10px;
+  color: inherit;
+  background: #111;
+  font-size: 1.1rem;
+}
+
+button { border: 0; cursor: pointer; font: inherit; }
+button:disabled { cursor: wait; opacity: .45; }
+
+.clear-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #f5f5f5;
+  background: #333;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.byte-count { margin: 8px 0 0; color: #aaa; font-size: .85rem; }
+
+.send-button {
+  width: 100%;
+  margin-top: var(--content-gap);
+  padding: 14px;
+  border-radius: 12px;
+  color: #f5f5f5;
+  background: #292929;
+  font-weight: 700;
+}
+
+.calibrate-button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #777;
+  border-radius: 12px;
+  color: #f5f5f5;
+  background: transparent;
+  font-weight: 700;
+}
+
+.light-section { margin-top: var(--content-gap); }
+
+.light-area {
+  width: 200px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: #000;
+  transition: background-color 0ms;
+}
+
+.light-area.is-light { background: #fff; }
+.light-area.is-dim { background: #000; }
+.light-area.is-guide { background: #151515; }

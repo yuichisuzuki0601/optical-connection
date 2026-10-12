@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sender</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="card" aria-label="Message to send">
+        <label class="input-label" for="message">Message</label>
+        <div class="input-wrap">
+          <input id="message" type="text" value="ABC" autocomplete="off" maxlength="100" />
+          <button id="clear" class="clear-button" type="button" aria-label="Clear message">×</button>
+        </div>
+        <p id="byte-count" class="byte-count">UTF-8: 5 bytes</p>
+      </section>
+
+      <section class="light-section" aria-label="Message area">
+        <div id="light-area" class="light-area" aria-label="Message display"></div>
+      </section>
+
+      <button id="send" class="send-button" type="button">Send</button>
+      <button id="calibrate" class="calibrate-button" type="button">Connection Check</button>
+      <p id="status" class="status" role="status" aria-live="polite">Ready</p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

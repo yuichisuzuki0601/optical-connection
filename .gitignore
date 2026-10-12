@@ -1,0 +1,13 @@
+# OS
+.DS_Store
+
+# device
+device/.stub/
+device/src/lib/
+__pycache__/
+device/.log
+*.py[cod]
+
+# sender
+node_modules/
+npm-debug.log*

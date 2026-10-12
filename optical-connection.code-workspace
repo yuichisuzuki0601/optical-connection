@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"name": "root",
+			"path": "."
+		},
+		{
+			"path": "device"
+		},
+		{	
+			"path": "sender"
+		}
+	],
+	"settings": {
+		"python.analysis.extraPaths": [
+			"${workspaceFolder:device}/.stub/micropython/esp32",
+			"${workspaceFolder:device}/.stub/local",
+			"${workspaceFolder:device}/src"
+		],
+		"python.analysis.diagnosticSeverityOverrides": {
+			"reportMissingModuleSource": "none"
+		}
+	}
+}

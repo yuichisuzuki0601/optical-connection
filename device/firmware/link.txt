@@ -1,0 +1,5 @@
+seed studio xiao esp32c3
+https://micropython.org/download/SEEED_XIAO_ESP32C3/
+
+seed studio xiao esp32c6
+https://wiki.seeedstudio.com/ja/xiao_esp32c6_micropython/
